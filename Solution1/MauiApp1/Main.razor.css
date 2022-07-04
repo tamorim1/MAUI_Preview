@@ -1,0 +1,11 @@
+﻿.khronos-app-body-context{
+    width:100%;
+    height:100%;
+}
+.khronos-app-body-toast{
+    display:none;
+}
+
+.khronos-app-body-dialog {
+    display: none;
+}

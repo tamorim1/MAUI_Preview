@@ -1,0 +1,74 @@
+﻿@implements IAsyncDisposable
+@inherits ComponentBase
+@inject KhronosDialogService dialogService
+
+<div class="khronos-dialog">
+    <SfDialog @ref="_dialog"
+                ID="dialog"
+                Width="250px" 
+                Visible="false" 
+                ShowCloseIcon="true" 
+                IsModal="true"
+                EnableResize="false"
+                AllowDragging="false"
+                
+    >
+        <DialogTemplates>
+            <Header>@_header</Header>
+            <Content>@_content</Content>
+        </DialogTemplates>
+        <DialogButtons>
+            <DialogButton OnClick="@(async (e)=> 
+{ 
+    await _onOk?.Invoke()!.ContinueWith(async t=> 
+    { 
+        _onOk = null;
+        await _dialog!.HideAsync();
+    })!; 
+})" 
+                          Content="OK" 
+                          IsPrimary="true"
+            >
+            </DialogButton>
+            <DialogButton OnClick="@(async (e)=> 
+{
+    _onOk = null;
+    await _dialog!.HideAsync();
+})" 
+                          Content="Cancel"
+            >
+            </DialogButton>
+        </DialogButtons>
+    </SfDialog> 
+</div>
+
+@code{
+    private SfDialog? _dialog { get; set; }
+
+    private string _header { get; set; } = null!;
+
+    private string _content { get; set; } = null!;
+
+    private event Func<Task>? _onOk;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        dialogService.OnDialogShow += DialogShow;
+        await Task.CompletedTask;
+    }
+
+    private async Task DialogShow(string header,string content, Func<Task> OnOk)
+    {
+
+        _onOk += OnOk;
+        _header = header;
+        _content = content;
+        await _dialog!.ShowAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        dialogService.OnDialogShow -= DialogShow;
+        await Task.CompletedTask;
+    }
+}

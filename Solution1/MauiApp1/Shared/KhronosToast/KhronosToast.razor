@@ -1,0 +1,67 @@
+﻿@implements IAsyncDisposable
+@inherits ComponentBase
+@inject KhronosToastService toastService
+@inject ILogger<KhronosToast> log
+
+<div class="khronos-toast">
+    <SfToast @ref="_toast"
+             ID="toast"
+             Target=".khronos-app-toast">
+        <ToastPosition X="Center" Y="Top">
+            
+        </ToastPosition>
+    </SfToast>
+</div>
+@code {
+    private SfToast? _toast { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        toastService.OnToastShow += ToastShow;
+        await Task.CompletedTask;
+    }
+
+    private async Task ToastShow(string title, string content,string type,int timeout)
+    {
+        var cssType = "e-toast-info";
+
+        if(type == "success")
+        {
+            cssType = "e-toast-success";
+            log.LogInformation($"sucess: {title} - {content}");
+        }else if(type == "warning")
+        {
+            cssType = "e-toast-warning";
+            log.LogWarning($"warning: {title} - {content}");
+        }else if(type == "error"){
+            cssType = "e-toast-danger";
+            log.LogError($"warning: {title} - {content}");
+        }else
+        {
+            log.LogInformation($"info: {title} - {content}");
+        }
+
+        await _toast!.ShowAsync(new()
+        {
+            Title = title,
+            Content = content,
+            NewestOnTop = true,
+            Timeout = timeout,
+            ShowCloseButton = true,
+            ShowProgressBar = true,
+            ExtendedTimeout = timeout,
+            ProgressDirection = ProgressDirection.LTR,
+            CssClass = cssType
+        });
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        toastService.OnToastShow -= ToastShow;
+        await Task.CompletedTask;
+    }
+
+}
+
+
+

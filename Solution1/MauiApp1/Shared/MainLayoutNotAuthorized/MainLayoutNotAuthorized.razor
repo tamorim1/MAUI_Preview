@@ -1,0 +1,39 @@
+﻿@inherits LayoutComponentBase;
+
+
+<div class="khronos-main" >
+    <div class="khronos-main-header">
+        <div class="col">
+            <SfToolbar ID="khronosMainToolbar"
+                       @ref="@_toolbar"
+                        >
+                <ToolbarEvents
+                >
+                </ToolbarEvents>
+            </SfToolbar>
+        </div>
+    </div>
+    <div class="khronos-main-content" >
+        <div class="khronos-main-content-sidebar">
+        </div>
+        <div class="khronos-main-content-body" >
+            @Body
+        </div>
+    </div>
+</div>
+
+
+@code{
+
+    private SfToolbar? _toolbar { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+
+    }
+
+
+}
+

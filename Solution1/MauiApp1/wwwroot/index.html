@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+	<title>MauiApp1</title>
+	<base href="/" />
+	<link href="khronos-app/khronos-app.css" rel="stylesheet" />
+	<link href="syncfusion/bootstrap5-dark.min.css" rel="stylesheet" />
+	<link href="MauiApp1.styles.css" rel="stylesheet" />
+	<script src="khronos-app/khronos-app.js" type="text/javascript"></script>
+	<script src="syncfusion/syncfusion-blazor.min.js" type="text/javascript"></script>
+</head>
+
+<body class="khronos-app">
+	<div id="khronos-app" class="khronos-app-body">
+		<div class="khronos-app-body-spinner-pane">
+			<div class="khronos-app-body-spinner-pane-spinner">
+
+			</div>
+		</div>
+	</div>
+	<div id="blazor-error-ui">
+		<div class="khronos-app-modal-unhandled-error">
+			<div class="khronos-app-modal-unhandled-error-message">
+				Error. Contact the suport!!! Close!!!
+			</div>
+		</div>
+	</div>
+	<style>
+		#blazor-error-ui {
+			display: none;
+		}
+
+		.khronos-app-modal-unhandled-error {
+			background-color: rgb(0,0,0);
+			background-color: rgba(0,0,0,0.4);
+			z-index: 9999;
+			top: 0;
+			left: 0;
+			position: fixed;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			height: 100%;
+		}
+		/*melhorar isso aqui depois*/
+		.khronos-app-modal-unhandled-error-message {
+			background-color: white;
+		}
+	</style>
+	<script src="_framework/blazor.webview.js" autostart="false"></script>
+</body>
+
+</html>

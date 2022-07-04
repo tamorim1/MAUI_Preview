@@ -1,0 +1,537 @@
+﻿@page "/empresas"
+@implements IAsyncDisposable
+@inject ILogger<Empresas> log
+@inject IJSRuntime js
+@inject KhronosToastService toastService
+@inject KhronosDialogService dialogService
+
+@attribute [Authorize(Roles = "EMPRESAS:CONSULTAR")]
+
+<PageTitle>Empresas</PageTitle>
+<div class="khronos-index-toolbar" >
+    <SfToolbar @ref="_toolbar"
+                ID="khronosIndexToolbar"
+                OverflowMode="OverflowMode.Popup" 
+                EnableCollision=false
+                >
+                <ToolbarEvents Clicked="@OnToolbarClicked">
+
+                </ToolbarEvents>
+                <ToolbarItems >
+                     @foreach (var toolbarItem in _toolbarItems)
+                     {
+                        
+                        @if (toolbarItem.Id == "khronosIndexToolbarItemSearch")
+                        {
+                            <ToolbarItem Id="@(toolbarItem.Id)"
+                                         Text="@(toolbarItem.Text)"
+                                         Overflow="@(toolbarItem.Overflow)"
+                                         ShowTextOn="@(toolbarItem.ShowTextOn)"
+                                         Type="@(toolbarItem.Type)"
+                                         PrefixIcon="@(toolbarItem.PrefixIcon)"
+                                         CssClass="@(toolbarItem.CssClass)"
+                                         ShowAlwaysInPopup="@(toolbarItem.ShowAlwaysInPopup)"
+                                         Align="@(toolbarItem.Align)"
+                            >
+                                <Template>
+                                    <SfTextBox ID="khronosIndexToolbarItemSearch"
+                                               @ref="_textBox" 
+                                               Placeholder="Search"
+                                               Width="150px"
+                                               ShowClearButton="true"
+                                               Input="@((e)=>
+{
+    _shouldRender = false;
+    _timer.Change(500,-1);
+    _searchValue = e.Value;
+})"
+                                               Created="@(async ()=> 
+{
+    await _textBox!.AddIcon("append","e-icons e-search e-flat");
+})"
+
+
+                                    >
+                                    </SfTextBox>         
+                                </Template>
+                            </ToolbarItem>
+                        }else
+                        {
+                            <ToolbarItem Id="@(toolbarItem.Id)"
+                                         Text="@(toolbarItem.Text)"
+                                         Overflow="@(toolbarItem.Overflow)"
+                                         ShowTextOn="@(toolbarItem.ShowTextOn)"
+                                         Type="@(toolbarItem.Type)"
+                                         PrefixIcon="@(toolbarItem.PrefixIcon)"
+                                         CssClass="@(toolbarItem.CssClass)"
+                                         ShowAlwaysInPopup="@(toolbarItem.ShowAlwaysInPopup)"
+                                         Align="@(toolbarItem.Align)"
+                            >
+
+                            </ToolbarItem>
+                
+                        }
+                     }
+                </ToolbarItems>
+    </SfToolbar>
+</div>
+<div class="khronos-index-grid">
+    <SfGrid @ref="_grid"
+            ID="khronosIndexGrid"
+            Width="100%"
+            Height="100%"
+            TValue="EmpresasTableDTO"           
+            AllowFiltering="true" 
+            AllowSorting="true"
+            AllowMultiSorting="true"
+            AllowSelection="true"
+            AllowExcelExport="true"
+            AllowPdfExport="true"
+            EnableHover="true"
+            EnableVirtualization="false"
+            ClipMode="ClipMode.EllipsisWithTooltip"
+            EnableAdaptiveUI="true"
+            EnableVirtualMaskRow="false"
+            RowRenderingMode="RowDirection.Vertical"
+            AllowPaging="true"
+            
+    >
+        <SfDataManager @ref="_dataManager" 
+                        AdaptorInstance="@(typeof(KhronosAdaptor<EmpresasTableDTO>))"
+                        Adaptor="Adaptors.CustomAdaptor" 
+                        EnableCaching="true"
+                        
+                    
+        >
+        </SfDataManager>
+        <GridEvents TValue="EmpresasTableDTO" 
+                    CommandClicked="OnCommandClicked"
+                    OnActionBegin="OnActionBegin"
+                
+        >
+
+        </GridEvents>
+        <GridPageSettings PageSize="@_pageSize" 
+        >
+        <Template>
+                <div style="display:flex;width:100%;justify-content:space-evenly;align-items:center;">
+                    <SfButton IconCss="e-icons e-chevron-left-double e-flat"
+                              Disabled="@_isDisableLeft"
+                              OnClick="@(async (e)=> 
+{
+    await _grid!.GoToPageAsync(1);
+    _isDisableLeft = true;
+    _isDisableRight = false;
+})"
+                    >
+                    </SfButton>
+                    <SfButton IconCss="e-icons e-chevron-left e-flat"
+                              Disabled="@_isDisableLeft"
+                              OnClick="@(async (e)=> 
+{
+    var page = _grid!.PageSettings.CurrentPage - 1;
+    await _grid.GoToPageAsync(page < 1 ? 1 : page);
+    if(page <= 1)
+    {
+        _isDisableLeft = true;
+    }
+
+    _isDisableRight = false;
+})"
+                    >
+                    </SfButton>
+                    <SfNumericTextBox  TValue="int" 
+                                        Width="50px"                                    
+                                        Min="1"
+                                        Max="100"
+                                        ShowSpinButton="false"
+                                        ShowClearButton="false"
+                                        Readonly="true"
+                                        Value="@(_grid!.PageSettings.CurrentPage)"
+                                        HtmlAttributes="@(new Dictionary<string, object>(){{ "style","min-width:50px;" }})"
+                                       
+                    >
+                        <NumericTextBoxEvents TValue="int" 
+                                                >
+
+                        </NumericTextBoxEvents>
+                    </SfNumericTextBox>
+                    <div style="white-space:nowrap;padding-left:5px;padding-right:5px;">
+                            @($"of {Math.Ceiling((decimal)_grid.TotalItemCount  / (decimal)_grid.PageSettings.PageSize)} Pages") 
+                    </div>
+                    <SfButton IconCss="e-icons e-chevron-right e-flat" 
+                              Disabled="@_isDisableRight"
+                              OnClick="@(async (e)=> 
+{
+    var page = _grid.PageSettings.CurrentPage + 1;
+    var maxPage = Math.Ceiling((decimal)_grid.TotalItemCount  / (decimal)_grid.PageSettings.PageSize);
+    await _grid.GoToPageAsync(page > maxPage ? (double)maxPage : page);
+    
+    if(page >= maxPage)
+    {
+        _isDisableRight = true;
+    }
+    
+    _isDisableLeft = false;
+    
+})"
+                    >
+                    </SfButton>
+                    <SfButton IconCss="e-icons e-chevron-right-double e-flat"
+                              Disabled="@_isDisableRight"
+                              OnClick="@(async (e)=> 
+{
+    var maxPage = Math.Ceiling((decimal)_grid.TotalItemCount  / (decimal)_grid.PageSettings.PageSize);
+    await _grid.GoToPageAsync((double)maxPage);
+    _isDisableRight = true;
+    _isDisableLeft = false;
+    
+})"
+                    >
+                    </SfButton>
+                </div>
+            </Template>
+        </GridPageSettings>
+        <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"        
+                            EnableCaseSensitivity="false"
+                            IgnoreAccent="true" 
+
+        >
+
+        </GridFilterSettings>
+        <GridSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Multiple" 
+                                CheckboxOnly="false" 
+                                EnableSimpleMultiRowSelection="true"
+        > 
+
+        </GridSelectionSettings>
+        <GridSearchSettings IgnoreAccent="true"
+                            IgnoreCase="true"                           
+        >
+
+        </GridSearchSettings>
+        <GridEditSettings Mode="EditMode.Dialog"
+                            AllowAdding="true"
+                            AllowEditing="true"
+                            AllowDeleting="true"
+                            AllowEditOnDblClick="false"
+                            ShowConfirmDialog="false"
+                            ShowDeleteConfirmDialog="false"
+                            NewRowPosition="NewRowPosition.Bottom"
+                            AllowNextRowEdit="false"                       
+        >
+
+        </GridEditSettings>
+        <GridTemplates >
+            <EmptyRecordTemplate>
+                <div style="display:none">
+
+                </div>
+            </EmptyRecordTemplate>
+        </GridTemplates>
+        <GridColumns>
+            <GridColumn Field="@(nameof(EmpresasTableDTO.CodigoEmpresa))" 
+                        HeaderText="@("Codigo Empresa")"
+                        Visible="@(true)" Width="30%">
+            </GridColumn>
+            <GridColumn Field="@(nameof(EmpresasTableDTO.NomeEmpresa))" 
+                        HeaderText="@("Nome Empresa")" 
+                        Visible="@(true)" Width="30%" 
+                            
+            >
+            </GridColumn>
+            <GridColumn Field="@(nameof(EmpresasTableDTO.Ativo))" 
+                        HeaderText="@("Ativo")"
+                        Visible="@(true)"
+                        Width="30%"
+                            
+            >
+            </GridColumn>
+            <GridColumn Type="ColumnType.None"
+                                               
+                        TextAlign="TextAlign.Center" 
+                        Visible="true"
+                        AllowResizing="true"
+                        AllowGrouping="false"
+                        AllowReordering="false"
+                        AllowFiltering="false"
+                        AllowSearching="false"
+                        AllowSorting="false"
+            >
+                <HeaderTemplate>
+                    @*Width="5%" 
+                        MinWidth="165px" *@
+                </HeaderTemplate>
+                <ChildContent>
+                    <GridCommandColumns>
+                        @foreach (var gridCommandColumn in _gridCommandColumns)
+                        {
+                            <GridCommandColumn ID="@(gridCommandColumn.Id)" 
+                                               Type="CommandButtonType.None" 
+                                               ButtonOption="@(new CommandButtonOptions() { IconCss=gridCommandColumn.PrefixIcon, 
+                                                                                            CssClass=gridCommandColumn.CssClass })"
+                            >
+                            </GridCommandColumn>
+                        }
+                    </GridCommandColumns>
+                </ChildContent>
+            </GridColumn>
+        </GridColumns>
+    </SfGrid>
+</div>
+
+<div class="khronos-index-dialog">
+    <SfDialog @ref="_dialog"
+                ID="dialog"
+                Width="250px" 
+                Visible="false" 
+                ShowCloseIcon="true" 
+                IsModal="true"
+                EnableResize="false"
+                AllowDragging="false"
+                
+    >
+        <DialogTemplates>
+            <Content>
+                    @*<EditForm >
+
+                    </EditForm>*@
+                teste
+            </Content>
+        </DialogTemplates>
+        <DialogButtons>
+            <DialogButton OnClick="@(async (e)=> 
+{ 
+    await _onOk?.Invoke()!.ContinueWith(async t=> 
+    { 
+        _onOk = null;
+        await _dialog!.HideAsync();
+    })!; 
+})" 
+                          Content="OK" 
+                          IsPrimary="true"
+            >
+            </DialogButton>
+            <DialogButton OnClick="@(async (e)=> 
+{
+    _onOk = null;
+    await _dialog!.HideAsync();
+})" 
+                          Content="Cancel"
+            >
+            </DialogButton>
+        </DialogButtons>
+    </SfDialog> 
+</div>
+
+
+
+@code{
+
+    public class EmpresasTableDTO
+    {
+        [Required(ErrorMessage = "Código Empresa é requerido.")]
+        public int CodigoEmpresa { get; set; }
+        [Required(ErrorMessage = "Nome Empresa é requerido.")]
+        public string NomeEmpresa { get; set; } = null!;
+        [Required(ErrorMessage = "Ativo é requerido.")]
+        public bool Ativo { get; set; }
+    }
+
+    private SfDialog? _dialog { get; set; }
+
+    private event Func<Task>? _onOk;
+
+    private SfToolbar? _toolbar { get; set; }
+
+    private List<ItemModel> _toolbarItems { get; set; } = null!;
+
+    private SfGrid<EmpresasTableDTO>? _grid { get; set; }
+
+    private List<ItemModel> _gridCommandColumns { get; set; } = null!;
+
+    private SfDataManager? _dataManager { get; set; }
+
+    private SfTextBox? _textBox { get; set; }
+
+    private SfDropDownList<string,(string,string)>? _dropDownList { get; set; } = null;
+
+    private string? _searchValue { get; set; }
+
+    private int _width { get; set; }
+
+    private bool _shouldRender { get; set; } = true;
+
+    private Timer _timer { get; set; } = null!;
+
+    private event Func<Task>? _onTimer;
+
+    private bool _isAutoFit { get; set; } = false;
+
+    private int _pageSize { get; set; } = 25;
+
+    private bool _isDisableLeft { get; set; } = true;
+    private bool _isDisableRight { get; set; } = false;
+
+    protected override bool ShouldRender()
+    {
+        return _shouldRender;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _timer.DisposeAsync();
+        _onTimer = null;
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        log.LogInformation("Ini index");
+
+        _toolbarItems = new()
+        {
+            new(){ Id="khronosIndexToolbarItemInsert", Text="", Overflow=OverflowOption.Show, ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-plus" ,CssClass="e-flat",Align=ItemAlign.Left},
+            new(){ Id="khronosIndexToolbarItemDelete", Text="", Overflow=OverflowOption.Show, ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-trash" ,CssClass="e-flat",Align=ItemAlign.Left },
+            new(){ Id="khronosIndexToolbarItemSearch", Text="Search", Overflow=OverflowOption.Show, ShowTextOn=DisplayMode.Both,Type=ItemType.Input,PrefixIcon="e-icons e-search" ,CssClass="e-flat",Align=ItemAlign.Center },
+            new(){ Id="khronosIndexToolbarItemRefresh", Text="", Overflow=OverflowOption.Show, ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-refresh" ,CssClass="e-flat",Align=ItemAlign.Right },
+            new(){ Id="khronosIndexToolbarItemAdvancedFilter", Text="Advanced Filter", Overflow=OverflowOption.Show, ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-filter-main" ,CssClass="e-flat",Align=ItemAlign.Right },
+            //new(){ Id="khronosIndexToolbarItemPrint", Text="Print", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-print" ,CssClass="e-flat", ShowAlwaysInPopup=true },
+            new(){ Id="khronosIndexToolbarItemExcelExport", Text="ExcelExport", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-export-excel" ,CssClass="e-flat" ,ShowAlwaysInPopup=true},
+            new(){ Id="khronosIndexToolbarItemPdfExport", Text="PdfExport", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-export-pdf" ,CssClass="e-flat",ShowAlwaysInPopup=true },
+            new(){ Id="khronosIndexToolbarItemCsvExport", Text="CsvExport", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,PrefixIcon="e-icons e-export-csv" ,CssClass="e-flat",ShowAlwaysInPopup=true },
+            new(){ Id="khronosIndexToolbarItemSeparator1", Type=ItemType.Separator,ShowAlwaysInPopup=true },
+            new(){ Id="khronosIndexToolbarItemCopy", Text="Copy", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,ShowAlwaysInPopup=true },
+            //new(){ Id="khronosIndexToolbarItemAutoFitAll", Text="AutoFit All", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,ShowAlwaysInPopup=true },
+            //new(){ Id="khronosIndexToolbarItemExpandGroupAll", Text="ExpandGroup All", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,ShowAlwaysInPopup=true },
+            //new(){ Id="khronosIndexToolbarItemLoadDataAll", Text="LoadData All", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,ShowAlwaysInPopup=true },
+            //new(){ Id="khronosIndexToolbarItemClearGrouping", Text="Clear Grouping", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,ShowAlwaysInPopup=true },
+            new(){ Id="khronosIndexToolbarItemClearFiltering", Text="Clear Filtering", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,ShowAlwaysInPopup=true },
+            //new(){ Id="khronosIndexToolbarItemClearSorting", Text="Clear Sorting", ShowTextOn=DisplayMode.Both,Type=ItemType.Button,ShowAlwaysInPopup=true },
+
+        };
+
+        _gridCommandColumns = new()
+        {
+            new () { Id="khronosIndexGridCommandView",PrefixIcon="e-icons e-eye" ,CssClass="e-flat"},
+            new () { Id="khronosIndexGridCommandUpdate",PrefixIcon="e-icons e-edit" ,CssClass="e-flat"},
+            new () { Id="khronosIndexGridCommandDelete",PrefixIcon="e-icons e-trash" ,CssClass="e-flat"}
+        };
+
+
+
+        var module = await js.InvokeAsync<IJSObjectReference>("import", "./Pages/Empresas.razor.js");
+        _width = await module.InvokeAsync<int>("getWidthWindow");
+
+
+        await module.DisposeAsync();
+        _onTimer += async () => { _shouldRender = true; await _grid!.SearchAsync(_searchValue); _timer.Change(-1, -1); };
+
+        _timer = new(async (c) => { await _onTimer?.Invoke()!; },null,-1,-1);
+
+
+
+    }
+
+    public async void OnCommandClicked(Syncfusion.Blazor.Grids.CommandClickEventArgs<EmpresasTableDTO> e)
+    {
+        switch (e.CommandColumn?.ID)
+        {
+            case "khronosIndexGridCommandView":
+                //desabilitar todos os campos
+                //passar os dados para o editform
+                // onok deve ser null
+                _onOk += null;
+                await _dialog!.ShowAsync();
+                break;
+            case "khronosIndexGridCommandUpdate":
+                //habilitar os campos 
+                //passar os dados para o editform
+                //onok deve ter a logica de update               
+                _onOk += async () => await _grid!.UpdateRowAsync(await _grid.GetRowIndexByPrimaryKeyAsync(e.RowData.CodigoEmpresa), null!);
+                await _dialog!.ShowAsync();
+                break;
+            case "khronosIndexGridCommandDelete":
+                await dialogService.DialogShow("Delete", "Delete?", async () => {
+                    await _grid!.DeleteRecordAsync(nameof(e.RowData.CodigoEmpresa),e.RowData);
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    public async  void OnToolbarClicked(Syncfusion.Blazor.Navigations.ClickEventArgs e)
+    {
+        switch (e.Item?.Id)
+        {
+            case "khronosIndexToolbarItemInsert":
+                //habilitar os campos 
+                //lipar os dados do editform
+                //onok deve ter a logica do insert
+                _onOk += async () => await _grid!.AddRecordAsync(null!, null);
+                await _dialog!.ShowAsync();
+                break;
+            case "khronosIndexToolbarItemDelete":
+                if(_grid!.SelectedRecords.Count > 0)
+                {
+                    await dialogService.DialogShow("Delete", "Delete?", async () => {
+                        await _grid.DeleteRecordAsync();
+                    });
+                }
+                await toastService.ToastShow("info", "info delete", "info", 5000);
+                break;
+            case "khronosIndexToolbarItemRefresh":
+                //_shouldRender = false;
+                await _grid!.Refresh();
+                break;
+            //case "khronosIndexToolbarItemPrint":
+            //    await Grid!.PrintAsync();
+            //    break;
+            case "khronosIndexToolbarItemExcelExport":
+                await _grid!.ExportToExcelAsync();
+                break;
+            case "khronosIndexToolbarItemPdfExport":
+                await _grid!.ExportToPdfAsync();
+                break;
+            case "khronosIndexToolbarItemCsvExport":
+                await _grid!.ExportToCsvAsync();
+                break;
+            case "khronosIndexToolbarItemCopy":
+                await _grid!.CopyAsync();
+                break;
+            //case "khronosIndexToolbarItemAutoFitAll":
+            //    await Grid!.AutoFitColumnsAsync();
+            //    break;
+            //case "khronosIndexToolbarItemExpandGroupAll":
+            //    await Grid!.ExpandAllGroupAsync();
+            //    break;
+            //case "khronosIndexToolbarItemLoadDataAll":
+            //    _pageSize = Grid!.TotalItemCount;
+            //    break;
+            //case "khronosIndexToolbarItemClearGrouping":
+            //    await Grid!.ClearGroupingAsync();
+            //    break;
+            case "khronosIndexToolbarItemClearFiltering":
+                await _grid!.ClearFilteringAsync();
+                break;
+            //case "khronosIndexToolbarItemClearSorting":
+            //    await Grid!.ClearSortingAsync();
+            //    break;
+            default:
+                break;
+        }
+
+    }
+
+    public async Task OnActionBegin(ActionEventArgs<EmpresasTableDTO> e)
+    {
+        //if(e.RequestType == Syncfusion.Blazor.Grids.Action.Grouping && !_isAutoFit)
+        //{
+        //    await Grid!.AutoFitColumnsAsync();
+        //    _isAutoFit = true;
+        //}
+
+    }
+
+}

@@ -1,0 +1,145 @@
+﻿@page "/auth/login"
+@layout MainLayoutNotAuthorized
+@inject MauiApp1AuthenticationService authenticationService
+@inject NavigationManager navigationManager
+@inject KhronosToastService toastService
+
+<PageTitle>Login</PageTitle>
+
+@*
+    implemetar autorização com refresh token hub signalr // desconsiderar
+    implementar logoff automatico com temporizador // contornar
+    implementar sqlite criptografado //deconsiderar
+
+    fluxo de logoff automatico:
+    ao fazer o login authenticationService deve iniciar um timer, esse timer deverá está em um serviço singleton ou um worker que deve estar exposto como uma propriedade publica
+    o timer deve executar o metodo de logoff ao final da contagem
+    sempre que mudar de rota o timer deve ser resetado
+    sempre que for feito uma chamada em um endpoint da api que é protegida o timer deve ser resetado
+*@
+<div class="khronos-login">
+    <EditForm Model="_loginDTO" 
+              OnValidSubmit="ExecuteLogin"
+              OnInvalidSubmit="@(async(c)=> 
+{
+    await _tooltip1!.OpenAsync();
+    await _tooltip2!.OpenAsync();
+})"
+              AdditionalAttributes="@(new Dictionary<string,object>(){ { "style", "width:100%;" }})"    
+        >
+        <DataAnnotationsValidator />
+        <SfCard ID="khronosLoginCard"
+                @ref="@_card"
+                >
+            <CardHeader>
+                <div>
+                    Login
+                </div>
+            </CardHeader>
+            <CardContent>
+                <SfTooltip @ref="_tooltip1"
+                           OnOpen="OnOpen"
+                           ID="khronosLoginTooltip1"
+                           CloseDelay="0"
+                           OpenDelay="0"
+                           OpensOn="Hover"
+                           Position="Position.TopLeft"
+                           WindowCollision="true"
+                           Target="#khronosLoginTextBox1"
+                           IsSticky="true"
+                           
+                >
+                    <SfTextBox @ref="_textBox1"
+                               ID="khronosLoginTextBox1"
+                                Placeholder="Usuário" 
+                               FloatLabelType="FloatLabelType.Auto"
+                               ShowClearButton="true"
+                               @bind-Value="_loginDTO.Usuario" 
+                               Width="100%"
+                               HtmlAttributes="@(new Dictionary<string, object>() { { "style","width: calc(100% - 2px);" }})">
+                    </SfTextBox>
+                    <TooltipTemplates>
+                        <Content>
+                            <ValidationMessage For="@(() => _loginDTO.Usuario)" />
+                        </Content>
+                    </TooltipTemplates>
+                </SfTooltip>
+                    @{
+                        var Click = EventCallback.Factory.Create<MouseEventArgs>(this, (e)=>{ });
+                    }
+                <SfTooltip @ref="_tooltip2"
+                           ID="khronosLoginTooltip2"
+                           OnOpen="OnOpen"
+                           CloseDelay="0"
+                           OpenDelay="0"
+                           OpensOn="Hover"
+                           Position="Position.TopLeft"
+                           WindowCollision="true"
+                           Target="#khronosLoginTextBox2"
+                           IsSticky="true"
+                >
+                    <SfTextBox @ref="_textBox2"
+                               ID="khronosLoginTextBox2"
+                               Placeholder="Senha" 
+                               FloatLabelType="FloatLabelType.Auto" 
+                               ShowClearButton="true"
+                               @bind-Value="_loginDTO.Senha" 
+                               Width="100%"
+                               Created="@( async ()=> { await _textBox2!.AddIcon("append","e-icons e-eye e-flat", new Dictionary<string,object>() { { "onclick", Click }} ); })"
+                               HtmlAttributes="@(new Dictionary<string, object>() { { "style","width: calc(100% - 2px);"},{ "type","password" } })">
+                    >
+                    </SfTextBox>
+                    <TooltipTemplates>
+                        <Content>
+                            <ValidationMessage For="@(() => _loginDTO.Senha)" />
+                        </Content>
+                    </TooltipTemplates>
+                </SfTooltip>
+            </CardContent>
+            <CardFooter>
+                <CardFooterContent>
+                    <SfButton HtmlAttributes="@(new Dictionary<string, object>(){ { "type", "submit"} })">Login</SfButton>
+                </CardFooterContent>
+            </CardFooter>
+        </SfCard>
+    </EditForm>
+</div>
+
+@code {
+
+
+    private LoginDTO _loginDTO = new LoginDTO();
+
+    private SfTextBox? _textBox1 { get; set; }
+
+    private SfTooltip? _tooltip1 { get; set; }
+
+    private SfTextBox? _textBox2 { get; set; }
+
+    private SfTooltip? _tooltip2 { get; set; }
+
+    private SfCard? _card { get; set; }
+
+    public async Task ExecuteLogin()
+    {
+
+
+        var result = await authenticationService.Login(_loginDTO);
+        if (!result.Result)
+        {
+            await toastService.ToastShow("Error", result.Errors!.ConvertAll(new Converter<object, string>(Convert.ToString!)).FirstOrDefault()!, "error", 5000);
+
+        }
+        else
+        {
+            navigationManager.NavigateTo("/");
+        }
+
+
+    }
+
+    private void OnOpen(TooltipEventArgs args)
+    {
+        args.Cancel = !args.HasText;
+    }
+}

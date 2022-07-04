@@ -1,0 +1,22 @@
+﻿@inherits ComponentBase
+@inject NavigationManager navigationManager
+@inject AuthenticationStateProvider authenticationStateProvider
+
+
+@code {
+    [Parameter]
+    public string RedirectTo { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await authenticationStateProvider.GetAuthenticationStateAsync();
+        if (string.IsNullOrEmpty(authenticationState.User?.Identity?.Name))
+        {
+            navigationManager.NavigateTo("/auth/login");
+        }
+        else
+        {
+            navigationManager.NavigateTo(RedirectTo);
+        }
+    }
+}

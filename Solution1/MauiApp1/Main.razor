@@ -1,0 +1,34 @@
+﻿<div class="khronos-app-body-toast">
+    <KhronosToast>
+
+    </KhronosToast>
+</div>
+<div class="khronos-app-body-dialog">
+    <KhronosDialog>
+
+    </KhronosDialog>
+</div>
+<div class="khronos-app-body-context">
+    <CascadingAuthenticationState>
+        <Router AppAssembly="@typeof(Main).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="@routeData" 
+                                    DefaultLayout="@typeof(MainLayoutAuthorized)" >
+                    <Authorizing>
+                    </Authorizing>
+                    <NotAuthorized>
+                        <KhronosRedirect RedirectTo="@("/")"></KhronosRedirect>
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+            </Found>
+            <NotFound>
+                <KhronosRedirect RedirectTo="@("/")"></KhronosRedirect>
+            </NotFound>
+        </Router>
+    </CascadingAuthenticationState>
+</div>
+
+@code{
+
+}
+

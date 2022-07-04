@@ -1,0 +1,68 @@
+﻿
+.khronos-app {
+    width: 100vw;
+    height: 100vh;
+    margin: 0px;
+    padding: 0px;
+}
+
+.khronos-app-body {
+    width: 100%;
+    height: 100%;
+}
+
+.khronos-app-body-spinner-pane {
+    background: #282d31;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.khronos-app-body-spinner-pane-spinner {
+    border: 8px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #fd7e14;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/*manter aqui pois object ::deep ta bugando*/
+::-webkit-scrollbar {
+    width: 10px !important;
+    height: 10px !important;
+}
+
+::-webkit-scrollbar-track {
+    background: #33383e !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #b9b9b9 !important;
+    border-radius: 5px !important;
+}
+
+/*ajustar aqui*/
+.e-toolbar-pop {
+    /*width: 250px !important;*/
+    overflow: auto !important;
+}
+
+/*.e-gridpager{
+    padding:13px;
+    display:flex;
+    width:100%;
+    overflow: auto;
+    place-content:space-between;
+}*/
+
+.e-gridcontent{
+    height:calc(100% - 77px);
+}

@@ -1,0 +1,203 @@
+﻿@inherits LayoutComponentBase
+@implements IAsyncDisposable
+@inject KhronosToastService toastService
+@inject NavigationManager navigationManager
+@inject MauiApp1AuthenticationService authenticationService
+@inject AuthenticationStateProvider authenticationStateProvider
+
+
+<div class="khronos-main" >
+    <div class="khronos-main-header">
+        <div class="col">
+            <SfToolbar ID="khronosMainToolbar"
+                       @ref="@_toolbar">
+                <ToolbarEvents Clicked="@OnToolbarClick"
+                >
+                </ToolbarEvents>
+                <ToolbarItems>
+                    <ToolbarItem Id="khronosMainToolbarItemToggleSidebar" 
+                                    PrefixIcon="e-icons e-menu e-flat" 
+                    >
+                    </ToolbarItem>
+                </ToolbarItems>
+            </SfToolbar>
+        </div>
+    </div>
+    <div class="khronos-main-content" >
+        <div class="khronos-main-content-sidebar">
+            <SfSidebar ID="khronosMainSidebar"
+                       @ref="@_sidebar"
+                       Width="@_sideBarWidth"
+                       Target=".khronos-main-content" 
+                        ShowBackdrop="true" 
+                        Position="SidebarPosition.Left" 
+                        Type="SidebarType.Over"          
+                        @bind-IsOpen="_sidebarToggle">
+                <ChildContent>
+                    <SfCard ID="khronosMainSidebarCard1"
+                            @ref="@_card1">
+                        <CardHeader>
+                            <div class="e-avatar e-avatar-xlarge">
+                                <div class="e-icons e-user e-flat"></div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="khronos-main-content-sidebar-card-content">
+                                @(_userName)
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <CardFooterContent>
+                                <div class="khronos-main-content-sidebar-card-footer">
+                                    <SfButton IconCss="e-icons e-notes e-flat"></SfButton>
+                                    <SfButton IconCss="e-icons e-comment-show e-flat"></SfButton>
+                                    <SfButton IconCss="e-icons e-month-agenda e-flat"></SfButton>
+                                    <SfButton IconCss="e-icons e-settings e-flat"></SfButton>
+                                    <SfButton IconCss="e-icons e-circle-close e-flat" OnClick="@(async (e)=>{ await authenticationService.Logout();})"></SfButton>
+                                </div>
+                            </CardFooterContent>
+                        </CardFooter>
+                    </SfCard>
+                    <SfCard ID="khronosMainSidebarCard2"
+                            @ref="@_card2">
+                        <CardContent>
+                            <div class="khronos-main-content-sidebar-card-content">
+                                <SfTextBox ID="khronosMainToolbarItemSearch"
+                                               @ref=_textBox 
+                                               Placeholder="Search"
+                                               ShowClearButton="true"
+                                               Created="@( async ()=> await _textBox!.AddIcon("append","e-icons e-search e-flat"))"
+                                    >
+                                    </SfTextBox>   
+                            </div>
+                        </CardContent>
+                    </SfCard>
+                    <SfListView ID="khronosMainSidebarListView"
+                                @ref="@_listView"
+                                DataSource="@_listViewItems" 
+                                ShowHeader="true" 
+                                HeaderTitle="Menu"
+                                
+                                
+                    >
+                        <ListViewEvents TValue="ListViewItem"
+                                        Clicked="@((c)=> 
+{ 
+    if(c.ItemData.NavLink != null)
+    {
+        navigationManager.NavigateTo(c.ItemData.NavLink);
+        _sidebarToggle = !_sidebarToggle;
+    }
+})"
+                            >
+
+                        </ListViewEvents>
+                        <ListViewFieldSettings TValue="ListViewItem" 
+                                                Id="Id" 
+                                                Text="Text"
+                                                Child="Child"
+                        >
+                        </ListViewFieldSettings>
+                    </SfListView>
+                </ChildContent>
+            </SfSidebar>
+        </div>
+        <div class="khronos-main-content-body" >
+            @Body
+        </div>
+    </div>
+</div>
+
+
+@code{
+    public class ListViewItem
+    {
+        public string Id { get; set; } = null!;
+        public string Text { get; set; }= null!;
+        public string? NavLink { get; set; }= null!;
+        public List<ListViewItem>? Child { get; set; }
+    }
+
+    private string? _userName { get; set; }
+
+    private SfSidebar? _sidebar { get; set; }
+
+    private SfCard? _card1 { get; set; }
+
+    private SfCard? _card2 { get; set; }
+
+    private SfToolbar? _toolbar { get; set; }
+
+    private SfListView<ListViewItem>? _listView { get; set; }
+
+    private List<ListViewItem> _listViewItems { get; set; } = new();
+
+    private SfTextBox? _textBox { get; set; }
+
+    private bool _sidebarToggle { get; set; } = false;
+
+    private string _sideBarWidth { get; set; } = "250px";
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        _listViewItems.Add(new()
+        {
+            Text = "Home",
+            Id = "00",
+            NavLink = "/",
+            Child = null
+        });
+
+        _listViewItems.Add(new()
+        {
+            Text = "Tabelas",
+            Id = "01",
+            NavLink = null,
+            Child = new()
+            {
+                new()
+                {
+                    Text = "Empresas",
+                    Id = "0101",
+                    NavLink = "/empresas"
+                },
+                new()
+                {
+                    Text = "Estabelecimentos",
+                    Id = "0102",
+                    NavLink = "/estabelecimentos"
+                }
+            }
+        });
+
+        navigationManager.LocationChanged += LocationChanged;
+
+        var authenticationState = await authenticationStateProvider.GetAuthenticationStateAsync();
+        _userName = authenticationState.User!.Identity!.Name;
+
+    }
+
+    public void OnToolbarClick(Syncfusion.Blazor.Navigations.ClickEventArgs args)
+    {
+        if (args.Item.Id == "khronosMainToolbarItemToggleSidebar")
+        {
+            _sidebarToggle = !_sidebarToggle;
+        }
+
+    }
+
+    private void LocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        //resetar o timer do serviço singleton ou worker
+    }
+
+
+    public async ValueTask DisposeAsync()
+    {
+        navigationManager.LocationChanged -= LocationChanged;
+        await Task.CompletedTask;
+    }
+
+}
+
