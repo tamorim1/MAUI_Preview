@@ -24,6 +24,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Data.SqlClient;
 
 public class Program
 {
@@ -33,7 +34,20 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddDbContext<WebApplication1DbContext>(o =>
         {
-            o.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
+            var connectionString = new SqlConnectionStringBuilder();
+
+            connectionString.DataSource = builder.Configuration["DataSource"] ?? builder.Configuration["ConnectionString:DataSource"];
+            connectionString.InitialCatalog = builder.Configuration["InitialCatalog"] ?? builder.Configuration["ConnectionString:InitialCatalog"];
+            connectionString.PersistSecurityInfo = true;
+#if DEBUG
+            connectionString.TrustServerCertificate = true;
+#endif
+            connectionString.UserID = builder.Configuration["UserID"] ?? builder.Configuration["ConnectionString:UserID"];
+            connectionString.Password = builder.Configuration["Password"] ?? builder.Configuration["ConnectionString:Password"];
+            connectionString.MultipleActiveResultSets = true;
+            connectionString.CurrentLanguage = "Portuguese";
+
+            o.UseSqlServer(connectionString.ToString());
             o.EnableDetailedErrors();
             o.EnableSensitiveDataLogging();
         });

@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<!--<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>-->
-		<TargetFrameworks>net6.0-android</TargetFrameworks>
+		<TargetFrameworks>net7.0-android</TargetFrameworks>
 		<!--<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>-->
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
@@ -56,29 +56,29 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="6.0.5" />
-	  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.6" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.0" />
 	  <!--<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="6.0.5" />-->
-	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.5">
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.0">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
 	  <!--<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.Core" Version="6.0.5" />-->
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.5">
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
-	  <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.2.0" />
-	  <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	  <!--<PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.0" />-->
-	  <PackageReference Include="Syncfusion.Blazor.Cards" Version="20.1.0.59" />
-	  <PackageReference Include="Syncfusion.Blazor.Grid" Version="20.1.0.59" />
-	  <PackageReference Include="Syncfusion.Blazor.Notifications" Version="20.1.0.59" />
-	  <PackageReference Include="Syncfusion.Blazor.Themes" Version="20.1.0.59" />
-	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.19.0" />
+	  <PackageReference Include="Syncfusion.Blazor.Cards" Version="20.3.0.56" />
+	  <PackageReference Include="Syncfusion.Blazor.Grid" Version="20.3.0.56" />
+	  <PackageReference Include="Syncfusion.Blazor.Notifications" Version="20.3.0.56" />
+	  <PackageReference Include="Syncfusion.Blazor.Themes" Version="20.3.0.56" />
+	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.25.0" />
 	</ItemGroup>
 
 	<ItemGroup>
